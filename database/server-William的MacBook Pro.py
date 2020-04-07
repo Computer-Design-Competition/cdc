@@ -4,10 +4,6 @@ import db
 import json
 app = Flask(__name__)
 
-@app.route("/hello/")
-def hello():
-    return "Hello world!"
-
 @app.route('/hotspotmap_json/',methods=["GET"])
 def hotspotmap_json():
     try:
@@ -129,76 +125,33 @@ def barchart_json():
 # the above is correctly structured
 # the following has not been correctly structured yet
 
-@app.route('/login/', methods=['GET'])
+@app.route('/login/', methods=['POST'])
 def login():
-    if request.method == 'GET':
-        params = request.args.items()
-        params_dict = dict()
-        for param in params:
-            params_dict[param[0]] = param[1]
-        print(params_dict)
-        if valid_login(params_dict['username'], params_dict['password']):
-            return json.dumps({{"code":1, "message":"成功"}})
+    error = None
+    if request.method == 'POST':
+        if valid_login(request.form['username'],
+                       request.form['password']):
+            return log_the_user_in(request.form['username'])
         else:
-            return json.dumps({{"code":0, "message":"失败"}})
-    else:
-        return json.dumps({{"code":0, "message":"失败"}})
+            error = 'Invalid username/password'
+    # the code below this is executed if the request method
+    # was GET or the credentials were invalid
+    return render_template('login.html', error=error)
 
-def valid_login(username, password):
-    ################################
-    # search in db to see if valid
-    ###################################
-    pass
 
 
 @app.route('/data_update/', methods=['POST'])
 def data_update():
     error = None
     if request.method == 'POST':
-        data = json.dumps(request.get_json())
-        try:
-            data = data["data"]
-            for piece in data:
-                year = piece["date"]["year"]
-                month = piece["date"]["month"]
-                day = piece["date"]["day"]
-                area = piece["area"]# a dict with key country, maybe province and city
-                detail = piece["datail"]# a dict with key "confirmed", "deaths", "recovered", "male", "female", "age1", "age2"
-                ######################################
-                # insert into db
-                #####################################
-        except Exception as e:
-            print(e)
-            return json.dumps({{"code":0, "message":"失败"}})
+        request.form['data']
         
     
     else:
-        return json.dumps({"code" : 0, "message":"失败"})
-
-
-@app.route('/register/', methods=['POST'])
-def register():
-    if request.method == 'POST':
-        data = json.dumps(request.get_json())
-        try:
-            username = data['username']
-            password = data['password']
-        except Exception as e:
-            print(e)
-            json.dumps({{"code":0, "message":"失败"}})
-        if register_(username, password):
-            return json.dumps({{"code":1, "message":"成功"}})
-        else:
-            return json.dumps({{"code":0, "message":"失败"}})
-    else:
-        return json.dumps({{"code":0, "message":"失败"}})
-
-
-def register_(username, password):
-    pass
-    #########################################
-    # register in db, return True if succeed
-    ###########################################
+        error = "invalid method"
+    # the code below this is executed if the request method
+    # was GET or the credentials were invalid
+    return json.dumps({"error":error})
 
 if __name__ == "__main__":
     app.run()
