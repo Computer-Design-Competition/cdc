@@ -1,6 +1,6 @@
 import csv
 import pymysql
-# import MySQLdb
+import MySQLdb
 import pypinyin
 
 # 不带声调的(style=pypinyin.NORMAL)
@@ -77,20 +77,20 @@ Hong_Kong = [0, 0, 0]
 Taiwan = [0, 0, 0]
 Macau = [0, 0, 0]
 
-# 插入数据库
+# # 插入数据库
 # conn = pymysql.connect(host='118.31.41.159', user='root', passwd='12Li2969/', db='data', use_unicode=1, charset='utf8')
 # cur = conn.cursor()
 # today = date_list[0]
-# sql = """CREATE TABLE data (
-#          date Date NOT NULL,
-#          country varchar(100) not null,
-#          province varchar(100),
-#          city varchar(100),
-#          confirmed int not null,
-#          cured int not null,
-#          death int not null)"""
-#
-# cur.execute(sql)
+# # sql = """CREATE TABLE data (
+# #          date Date NOT NULL,
+# #          country varchar(100) not null,
+# #          province varchar(100),
+# #          city varchar(100),
+# #          confirmed int not null,
+# #          cured int not null,
+# #          death int not null)"""
+# #
+# # cur.execute(sql)
 # with open('DXYArea.csv', 'r', encoding='utf8') as f:
 #     reader = csv.reader(f)
 #     reader = list(reader)
@@ -111,40 +111,68 @@ Macau = [0, 0, 0]
 #                 Taiwan = [int(row[7]), int(row[9]), int(row[10])]
 #             if row[3] == 'China' and row[5] == 'Macau':
 #                 Macau = [int(row[7]), int(row[9]), int(row[10])]
-#
+# 
 #         elif date != today:
 #             w = 1
 #             # 外国
 #             for i in list(country_list.keys()):
 #                 cur.execute("insert into data(date, country, confirmed, cured, death) values (%s, %s, %s, %s, %s)", ('2020'+'-'+today, i, country_list[i][0], country_list[i][1], country_list[i][2]))
-#             # 中国
-#             for i in list(city_list.keys()):
-#                 for j in province_list.keys():
-#                     if i in province_list[j]:
-#                         province = j
-#
-#                 cur.execute("insert into data(date, country, province, city, confirmed, cured, death) values (%s, %s, %s, %s, %s, %s, %s)", ('2020'+'-'+today, 'China', hp(province), hp(i), city_list[i][0], city_list[i][1], city_list[i][2]))
-#                 print(w)
-#                 w += 1
-#             # 台湾香港澳门
-#             cur.execute("insert into data(date, country, province, confirmed, cured, death) values(%s, %s, %s, %s, %s, %s)", ('2020' + '-' + today, 'China', 'Hong Kong', Hong_Kong[0], Hong_Kong[1],Hong_Kong[2]))
-#             cur.execute("insert into data(date, country, province, confirmed, cured, death) values(%s, %s, %s, %s, %s, %s)", ('2020' + '-' + today, 'China', 'Taiwan', Taiwan[0], Taiwan[1], Taiwan[2]))
-#             cur.execute("insert into data(date, country, province, confirmed, cured, death) values(%s, %s, %s, %s, %s, %s)", ('2020' + '-' + today, 'China', 'Macau', Macau[0], Macau[1], Macau[2]))
+#             # 中国各市
+#             # for i in list(city_list.keys()):
+#             #     for j in province_list.keys():
+#             #         if i in province_list[j]:
+#             #             province = j
+#             #
+#             #     cur.execute("insert into data(date, country, province, city, confirmed, cured, death) values (%s, %s, %s, %s, %s, %s, %s)", ('2020'+'-'+today, 'China', hp(province), hp(i), city_list[i][0], city_list[i][1], city_list[i][2]))
+#             #     print(w)
+#             #     w += 1
+#             #
+#             # # 各省的
+#             # for province in province_list.keys():
+#             #     confirmed = 0
+#             #     cured = 0
+#             #     death = 0
+#             #     for city in province_list[province]:
+#             #         if hp(city) == 'daimingquediqu' or hp(city) == 'People from other cities':
+#             #             continue
+#             #         confirmed += city_list[city][0]
+#             #         cured += city_list[city][1]
+#             #         death += city_list[city][2]
+#             #     cur.execute(
+#             #         "insert into data(date, country, province, city, confirmed, cured, death) values (%s, %s, %s, %s, %s, %s, %s)",
+#             #         ('2020' + '-' + today, 'China', hp(province), 'city', confirmed, cured, death))
+#             #
+#             # # 中国
+#             # print(w)
+#             # confirmed = 0
+#             # cured = 0
+#             # death = 0
+#             # for city in city_list:
+#             #     confirmed += city_list[city][0]
+#             #     cured += city_list[city][1]
+#             #     death += city_list[city][2]
+#             # cur.execute(
+#             #     "insert into data(date, country, province, city, confirmed, cured, death) values (%s, %s, %s, %s, %s, %s, %s)",
+#             #     ('2020' + '-' + today, 'China', 'province', 'city', confirmed, cured, death))
+#             # # 台湾香港澳门
+#             # cur.execute("insert into data(date, country, province, confirmed, cured, death) values(%s, %s, %s, %s, %s, %s)", ('2020' + '-' + today, 'China', 'Hong Kong', Hong_Kong[0], Hong_Kong[1],Hong_Kong[2]))
+#             # cur.execute("insert into data(date, country, province, confirmed, cured, death) values(%s, %s, %s, %s, %s, %s)", ('2020' + '-' + today, 'China', 'Taiwan', Taiwan[0], Taiwan[1], Taiwan[2]))
+#             # cur.execute("insert into data(date, country, province, confirmed, cured, death) values(%s, %s, %s, %s, %s, %s)", ('2020' + '-' + today, 'China', 'Macau', Macau[0], Macau[1], Macau[2]))
 #             day += 1
-#
+# 
 # cur.close()
 # conn.commit()
 # conn.close()
-#
-# # 用户名密码
-# conn = pymysql.connect(host='118.31.41.159', user='root', passwd='12Li2969/', db='data', use_unicode=1, charset='utf8')
-# cur = conn.cursor()
-# sql = """CREATE TABLE username(
-#     username varchar(100) not null,
-#     password varchar(100) not null,
-#     primary key(username)
-#     )"""
-# cur.execute(sql)
-# cur.close()
-# conn.commit()
-# conn.close()
+# #
+# # # 用户名密码
+# # conn = pymysql.connect(host='118.31.41.159', user='root', passwd='12Li2969/', db='data', use_unicode=1, charset='utf8')
+# # cur = conn.cursor()
+# # sql = """CREATE TABLE username(
+# #     username varchar(100) not null,
+# #     password varchar(100) not null,
+# #     primary key(username)
+# #     )"""
+# # cur.execute(sql)
+# # cur.close()
+# # conn.commit()
+# # conn.close()
