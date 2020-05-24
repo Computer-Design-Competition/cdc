@@ -1,3 +1,6 @@
+import axios from "axios";
+axios.defaults.withCredentials = true;
+
 export default {
     request
 };
@@ -10,24 +13,23 @@ export default {
  * @param {Object} [obj.data] 请求体
  * @param {String} obj.responseType 设置响应的数据类型。合法值：text、arraybuffer
  */
-
 async function request(obj) {
-    const result = await uni.request({
-        method: obj.method,
-        url: obj.url + queryObjectToString(obj.queries),
-        header: {
-            Authorization: authorization
-        },
-        data: obj.data,
-        dataType: obj.dataType,
-        responseType: obj.responseType
-    })
+    let result = {};
 
-    const [error, res] = result;
-    //请求未发出时产生的错误
-    if (error) throw error;
+    await axios({
+            method: obj.method,
+            timeout: 40000,
+            url: obj.url + queryObjectToString(obj.queries),
+            data: obj.data,
+            crossDomain: true
+        })
+        .then(res => {
+            result = res.data;
+        }).catch(err => {
+            throw err
+        });
 
-    return res.data;
+    return result;
 }
 
 /**
