@@ -1,29 +1,38 @@
 import csv
 import pymysql
-import MySQLdb
 import pypinyin
 
 # 不带声调的(style=pypinyin.NORMAL)
 def hp(word):
-    s = ''
-    for i in pypinyin.pinyin(word, style=pypinyin.NORMAL):
-        s += ''.join(i)
-    return s
+    if word == '陕西':
+        return 'shaanxi'
+    else:
+        s = ''
+        for i in pypinyin.pinyin(word, style=pypinyin.NORMAL):
+            s += ''.join(i)
+        return s
 
 # 日期列表
 date_list = []
-with open('DXYArea.csv', 'r', encoding='utf8') as f:
-    reader = csv.reader(f)
-    flag = False
-    for row in reader:
-        if flag:
-            a = row[11]
-            date = a[5] + a[6] + '-' + a[8] + a[9]
-            if date not in date_list:
-                date_list.append(date)
-        if not flag:
-            flag = True
-date_list = list(reversed(date_list))
+conn = pymysql.connect(host='118.31.41.159', user='root', passwd='12Li2969/', db='data', use_unicode=1, charset='utf8')
+cur = conn.cursor()
+cur.execute('select date from data where country = "country" and province = "province" and city = "city"')
+results = cur.fetchall()
+for i in range(len(results)):
+    date = ''.join(str(results[i][0]))
+    date_list.append(date[-5:])
+# with open('DXYArea.csv', 'r', encoding='utf8') as f:
+#     reader = csv.reader(f)
+#     flag = False
+#     for row in reader:
+#         if flag:
+#             a = row[11]
+#             date = a[5] + a[6] + '-' + a[8] + a[9]
+#             if date not in date_list:
+#                 date_list.append(date)
+#         if not flag:
+#             flag = True
+# date_list = list(reversed(date_list))
 # print(date_list)
 
 # 外国国家列表
@@ -111,12 +120,28 @@ Macau = [0, 0, 0]
 #                 Taiwan = [int(row[7]), int(row[9]), int(row[10])]
 #             if row[3] == 'China' and row[5] == 'Macau':
 #                 Macau = [int(row[7]), int(row[9]), int(row[10])]
-# 
+#
 #         elif date != today:
 #             w = 1
+#             # 全世界
+#             # print(w)
+#             # confirmed = 0
+#             # cured = 0
+#             # death = 0
+#             # for i in list(country_list.keys()):
+#             #     confirmed += country_list[i][0]
+#             #     cured += country_list[i][1]
+#             #     death += country_list[i][2]
+#             # for city in city_list:
+#             #     confirmed += city_list[city][0]
+#             #     cured += city_list[city][1]
+#             #     death += city_list[city][2]
+#             # cur.execute(
+#             #     "insert into data(date, country, province, city, confirmed, cured, death) values (%s, %s, %s, %s, %s, %s, %s)",
+#             #     ('2020' + '-' + today, 'country', 'province', 'city', confirmed, cured, death))
 #             # 外国
-#             for i in list(country_list.keys()):
-#                 cur.execute("insert into data(date, country, confirmed, cured, death) values (%s, %s, %s, %s, %s)", ('2020'+'-'+today, i, country_list[i][0], country_list[i][1], country_list[i][2]))
+#             # for i in list(country_list.keys()):
+#             #     cur.execute("insert into data(date, country, confirmed, cured, death) values (%s, %s, %s, %s, %s)", ('2020'+'-'+today, i, country_list[i][0], country_list[i][1], country_list[i][2]))
 #             # 中国各市
 #             # for i in list(city_list.keys()):
 #             #     for j in province_list.keys():
@@ -159,7 +184,7 @@ Macau = [0, 0, 0]
 #             # cur.execute("insert into data(date, country, province, confirmed, cured, death) values(%s, %s, %s, %s, %s, %s)", ('2020' + '-' + today, 'China', 'Taiwan', Taiwan[0], Taiwan[1], Taiwan[2]))
 #             # cur.execute("insert into data(date, country, province, confirmed, cured, death) values(%s, %s, %s, %s, %s, %s)", ('2020' + '-' + today, 'China', 'Macau', Macau[0], Macau[1], Macau[2]))
 #             day += 1
-# 
+#
 # cur.close()
 # conn.commit()
 # conn.close()

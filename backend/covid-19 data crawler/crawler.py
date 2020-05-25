@@ -21,10 +21,13 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(message)s')
 logger = logging.getLogger(__name__)
 
 def hp(word):
-    s = ''
-    for i in pypinyin.pinyin(word, style=pypinyin.NORMAL):
-        s += ''.join(i)
-    return s
+    if word == '陕西':
+        return 'shaanxi'
+    else:
+        s = ''
+        for i in pypinyin.pinyin(word, style=pypinyin.NORMAL):
+            s += ''.join(i)ß
+        return s
 class Crawler:
     def __init__(self):
         self.session = requests.session()

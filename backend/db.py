@@ -9,6 +9,7 @@ class database:
         self.cursor = self.db.cursor()
         self.fields = ["date", "country", "province", "city", "confirmed", "cured", "death"]
         self.fields2 = ["date", "country", "confirmed", "cured", "death"]
+
     def get_data_accumulated(self, date, country, province='', city=''):
         """
             return the accumulated data till date time
@@ -78,10 +79,10 @@ class database:
         province_list = {}
         for item in results:
             if item[0] != "NULL" and item[1] != "NULL":
-                if item[0].capitalize() not in province_list.keys():
-                    province_list[item[0].capitalize()] = []
-                if item[1] not in province_list[item[0].capitalize()]:
-                    province_list[item[0].capitalize()].append(item[1])
+                if item[0].lower() not in province_list.keys():
+                    province_list[item[0].lower()] = []
+                if item[1] not in province_list[item[0].lower()]:
+                    province_list[item[0].lower()].append(item[1])
         return province_list
 
     def barchart(self, Type, date, country='', province=''):
@@ -144,7 +145,7 @@ class database:
                         #     province_date_data['cured'] += date_data['cured']
                         #     province_date_data['death'] += date_data['death']
                         province_date_data = {'date': date, 'country': 'China', 'province': province, 'confirmed': 0, 'cured': 0, 'death': 0}
-                        date_data = self.get_data_accumulated(date, country, province, 'city')
+                        date_data = self.get_data_accumulated(date, country, createdb.hp(province), 'city')
 
                         province_date_data['confirmed'] += date_data['confirmed']
                         province_date_data['cured'] += date_data['cured']
@@ -170,10 +171,10 @@ class database:
                         #     province_date_data['confirmed'] += date_data['confirmed']
                         #     province_date_data['cured'] += date_data['cured']
                         #     province_date_data['death'] += date_data['death']
-                        date_data = self.get_data_accumulated(date, country, province, 'city')
+                        date_data = self.get_data_accumulated(date, country, createdb.hp(province), 'city')
                         province_date_data = {'date': date, 'country': 'China', 'province': province, 'confirmed': 0, 'cured': 0, 'death': 0}
                         if pre_day != '2020-01-21':
-                            pre_data = self.get_data_accumulated(pre_day, country, province, 'city')
+                            pre_data = self.get_data_accumulated(pre_day, country, createdb.hp(province), 'city')
                             for i in range(len(pre_data)):
                                 if i < 4:
                                     continue
@@ -190,22 +191,22 @@ class database:
                 all_city_date_data = {}
                 province_list = self.get_province_list(date)
                 if Type == 'accumulated':
-                    for city in province_list[province]:
+                    for city in province_list[createdb.hp(province)]:
                         # 这些数据要删除
                         if createdb.hp(city) == 'city' or createdb.hp(city) == 'daimingquediqu' or createdb.hp(city) == 'People from other cities':
                             continue
-                        date_data = self.get_data_accumulated(date, country, province, createdb.hp(city))
+                        date_data = self.get_data_accumulated(date, country, createdb.hp(province), createdb.hp(city))
                         all_city_date_data[createdb.hp(city)] = date_data
                     return all_city_date_data
                 if Type == 'someday':
                     pre_day = date_fun.getdate(date, 1)
-                    for city in province_list[province]:
+                    for city in province_list[createdb.hp(province)]:
                         # 这些数据要删除
                         if createdb.hp(city) == 'city' or createdb.hp(city) == 'daimingquediqu' or createdb.hp(city) == 'People from other cities':
                             continue
-                        date_data = self.get_data_accumulated(date, country, province, createdb.hp(city))
+                        date_data = self.get_data_accumulated(date, country, createdb.hp(province), createdb.hp(city))
                         if pre_day != '2020-01-21':
-                            pre_data = self.get_data_accumulated(pre_day, country, province, createdb.hp(city))
+                            pre_data = self.get_data_accumulated(pre_day, country, createdb.hp(province), createdb.hp(city))
                             for i in range(len(pre_data)):
                                 if i < 4:
                                     continue
@@ -214,14 +215,14 @@ class database:
                         all_city_date_data[createdb.hp(city)] = date_data
                     return all_city_date_data
 
-    def linechart(self, Type, Date, country, province='', city=''):
+    def linechart(self, Type, Date, country='', province='', city=''):
         if city != '' and province != '':
             city_date_data = {}
             if Type == 'accumulated':
                 for date in createdb.date_list:
                     if '2020-' + date == Date:
                         break
-                    date_data = self.get_data_accumulated('2020-' + date, country, province, createdb.hp(city))
+                    date_data = self.get_data_accumulated('2020-' + date, country, createdb.hp(province), createdb.hp(city))
                     city_date_data['2020-' + date] = date_data
                 return city_date_data
             if Type == 'someday':
@@ -229,9 +230,9 @@ class database:
                     if '2020-' + date == Date:
                         break
                     pre_day = date_fun.getdate('2020-' + date, 1)
-                    date_data = self.get_data_accumulated('2020-' + date, country, province, createdb.hp(city))
+                    date_data = self.get_data_accumulated('2020-' + date, country, createdb.hp(province), createdb.hp(city))
                     if pre_day != '2020-01-21':
-                        pre_data = self.get_data_accumulated(pre_day, country, province, createdb.hp(city))
+                        pre_data = self.get_data_accumulated(pre_day, country, createdb.hp(province), createdb.hp(city))
                         for i in range(len(pre_data)):
                             if i < 4:
                                 continue
@@ -246,8 +247,8 @@ class database:
                 for date in createdb.date_list:
                     if '2020-' + date == Date:
                         break
-                    date_data = self.get_data_accumulated('2020-'+date, country, province, 'city')
-                    province_date_data = {'date': '2020-'+date, 'country': 'China', 'province': province, 'confirmed': 0,
+                    date_data = self.get_data_accumulated('2020-'+date, country, createdb.hp(province), 'city')
+                    province_date_data = {'date': '2020-'+date, 'country': 'China', 'province': createdb.hp(province), 'confirmed': 0,
                                           'cured': 0, 'death': 0}
                     province_date_data['confirmed'] += date_data['confirmed']
                     province_date_data['cured'] += date_data['cured']
@@ -269,12 +270,12 @@ class database:
                 for date in createdb.date_list:
                     if '2020-' + date == Date:
                         break
-                    date_data = self.get_data_accumulated('2020-'+date, country, province, 'city')
-                    province_date_data = {'date': '2020-' + date, 'country': 'China', 'province': province,
+                    date_data = self.get_data_accumulated('2020-'+date, country, createdb.hp(province), 'city')
+                    province_date_data = {'date': '2020-' + date, 'country': 'China', 'province': createdb.hp(province),
                                           'confirmed': 0, 'cured': 0, 'death': 0}
                     pre_day = date_fun.getdate('2020-' + date, 1)
                     if pre_day != '2020-01-21':
-                        pre_data = self.get_data_accumulated(pre_day, country, province, 'city')
+                        pre_data = self.get_data_accumulated(pre_day, country, createdb.hp(province), 'city')
                         for i in range(len(pre_data)):
                             if i < 4:
                                 continue
@@ -305,7 +306,7 @@ class database:
                     #     province_date_data['death'] += date_data['death']
                     # all_province_date_data['2020-' + date] = province_date_data
                 return all_province_date_data
-        if city == '' and province == '' and country.lower() != 'china':
+        if city == '' and province == '' and country.lower() != 'china' and country != '':
             all_country_date_data = {}
             if Type == 'accumulated':
                 for date in createdb.date_list:
@@ -392,7 +393,41 @@ class database:
                     #         country_date_data['death'] += date_data['death']
                     # all_country_date_data['2020-' + date] = country_date_data
                 return all_country_date_data
+        if city == '' and province == '' and country == '':
+            all_country_date_data = {}
+            if Type == 'accumulated':
+                for date in createdb.date_list:
+                    if '2020-' + date == Date:
+                        break
+                    date_data = self.get_data_accumulated('2020-' + date, 'country', 'province', 'city')
+                    country_date_data = {'date': '2020-' + date, 'confirmed': 0, 'cured': 0, 'death': 0}
+                    country_date_data['confirmed'] += date_data['confirmed']
+                    country_date_data['cured'] += date_data['cured']
+                    country_date_data['death'] += date_data['death']
+                    all_country_date_data['2020-' + date] = country_date_data
+                return all_country_date_data
+            if Type == 'someday':
 
+                for date in createdb.date_list:
+                    print(date)
+                    if '2020-' + date == Date:
+                        break
+                    date_data = self.get_data_accumulated('2020-' + date, 'country', 'province', 'city')
+                    country_date_data = {'date': '2020-' + date, 'confirmed': 0, 'cured': 0, 'death': 0}
+                    pre_day = date_fun.getdate('2020-' + date, 1)
+                    if pre_day != '2020-01-21':
+                        pre_data = self.get_data_accumulated(pre_day, 'country', 'province', 'city')
+                        for i in range(len(pre_data)):
+                            if i < 4:
+                                continue
+                            else:
+                                date_data[self.fields[i]] = date_data[self.fields[i]] - pre_data[self.fields[i]]
+                    country_date_data['confirmed'] += date_data['confirmed']
+                    country_date_data['cured'] += date_data['cured']
+                    country_date_data['death'] += date_data['death']
+                    all_country_date_data['2020-' + date] = country_date_data
+
+                return all_country_date_data
     def register(self, username, password):
         try:
             self.cursor.execute('insert into username values ("%s", "%s")' % (username, password))
@@ -423,7 +458,8 @@ class database:
                     int(detail['confirmed']), int(detail['cured']), int(detail['death'])))
                 self.db.commit()
             return True
-        except:
+        except Exception as e:
+            print(e)
             return False
     def upload(self, date, country, province, city, confirmed = '', cured = '', death = ''):
         if confirmed == '' or cured == '' or death == '':
@@ -444,11 +480,11 @@ class database:
         try:
             if country != '' and province != '' and city != '':
                 sql = "select * from data where date < '{}' and country = '{}' AND province = '{}' and city = '{}' ".format(
-                    date, country, province, city)
+                    date, country, createdb.hp(province), createdb.hp(city))
             elif country != '' and province != '' and city == '' and level == True:
-                sql = "select * from data where date < '{}' and province = '{}' and city = 'city'".format(date, province)
+                sql = "select * from data where date < '{}' and province = '{}' and city = 'city'".format(date, createdb.hp(province))
             elif country != '' and province != '' and city == '' and level == False:
-                sql = "select * from data where date < '{}' and province = '{}' ".format(date, province)
+                sql = "select * from data where date < '{}' and province = '{}' ".format(date, createdb.hp(province))
             elif country == 'China' and province == '' and city == '' and level == True:
                 sql = "select * from data where date < '{}' and country = 'China' and province = 'province' and city = 'city' ".format(date)
             elif country == 'China' and province == '' and city == '' and level == False:
@@ -463,7 +499,7 @@ class database:
             results = self.cursor.fetchall()
 
             # 插入csv文件
-            f = open('{}.csv'.format(addr), 'w', encoding='utf-8', newline='')
+            f = open('{}'.format(addr), 'w', encoding='utf-8', newline='')
             writer = csv.writer(f)
             firstline = ['Date', 'Country', 'Province', 'City']
             if confirmed == True:
@@ -522,20 +558,19 @@ if __name__ == "__main__":
     
     test = database()
     # 提取数据
-    # print(test.barchart('someday', '2020-05-20'))
-    # print(test.linechart('someday', '2020-05-18', 'Germany'))
+    # print(test.barchart('accumulated', '2020-05-20', 'China', '重庆'))
+    # print(test.linechart('accumulated', '2020-05-23'))
 
     # 注册登录
     # print(test.register("test", "test"))
     # print(test.login("abc", "123"))
 
     # 插入新数据
-    # test.update('2020-03-29', {'country': 'China'}, {'confirmed': 0, 'cured': 0, 'death': 0}
+    # test.update('2020-03-29', {'country': 'China'}, {'confirmed': 0, 'cured': 0, 'death': 0})
     # test.upload('2020-05-24', 'China', 'Guangdong', 'Guangzhou' , 20, 20)
     # print(test.get_country_list(date))
     # print(test.get_province_list(date))
 
     # 数据下载
     # test.download('2020-05-01', False, confirmed='Yes', cured='Yes', death='No')
-    test.request_for_csv({"date": "2020-05-22", "area": {"country": "China", "province": "guangdong"},
-                          "data_type": ["confirmed", "cured"], "level": True}, '123')
+    test.request_for_csv({"date": "2020-05-03", "area": {"country": "China", "province": "广东"},"data_type": ["confirmed", "cured"], "level": True}, '123')
