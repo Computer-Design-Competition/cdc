@@ -3,7 +3,7 @@
     <el-form class="demo-form-inline">
       <el-form-item label="记录日期">
         <el-date-picker
-          v-model="inputInfo.date"
+          v-model="date"
           value-format="yyyy-MM-dd"
           align="right"
           type="date"
@@ -78,12 +78,17 @@ export default {
           }
         ]
       },
+      date:"",
       chinaList: [],
       worldList: [],
       provinces: [],
       area: [],
       inputInfo: {
-        detail: {}
+        detail: {
+          confirmed:null,
+          cured:null,
+          death:null
+        }
       }
     };
   },
@@ -132,16 +137,19 @@ export default {
     },
     async upload() {
       if (
-        this.inputInfo.date &&
         this.inputInfo.detail.confirmed &&
         this.inputInfo.detail.cured &&
         this.inputInfo.detail.death
       ) {
-        let res = await api.postData(this.inputInfo);
-        if(res.code === 1){
-          this.inputInfo = {};
-          this.area = [];
-        }else {
+        this.inputInfo.date = {
+          year:this.date.substring(0,4),
+          month:this.date.substring(5,7),
+          day:this.date.substring(8,10)
+        }
+        let res = await api.postData({data:[this.inputInfo]});
+        if (res.code === 1) {
+          alert(res.message);
+        } else {
           alert(res.message);
         }
       }
