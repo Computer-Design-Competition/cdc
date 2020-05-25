@@ -92,36 +92,8 @@
       </el-carousel>
     </div>
     <div class="box" v-show="showIndex == 3">
-      <inputBox></inputBox>
-      <el-button @click="upload">上传</el-button>
-      <el-upload
-        action="http://118.31.41.159:5000/upload_data/"
-        list-type="picture-card"
-        :auto-upload="false"
-      >
-        <i slot="default" class="el-icon-plus"></i>
-        <div slot="file" slot-scope="{file}">
-          <img class="el-upload-list__item-thumbnail" :src="file.url" alt />
-          <span class="el-upload-list__item-actions">
-            <span class="el-upload-list__item-preview" @click="handlePictureCardPreview(file)">
-              <i class="el-icon-zoom-in"></i>
-            </span>
-            <span
-              v-if="!disabled"
-              class="el-upload-list__item-delete"
-              @click="handleDownload(file)"
-            >
-              <i class="el-icon-download"></i>
-            </span>
-            <span v-if="!disabled" class="el-upload-list__item-delete" @click="handleRemove(file)">
-              <i class="el-icon-delete"></i>
-            </span>
-          </span>
-        </div>
-      </el-upload>
-      <el-dialog :visible.sync="dialogVisible">
-        <img width="100%" alt />
-      </el-dialog>
+      <inputBox v-if="showInput"></inputBox>
+      <loginBox @updateInput="show" v-else></loginBox>
     </div>
     <div class="box download" v-show="showIndex==4">
       <el-form>
@@ -180,6 +152,7 @@
 import api from "../api/api";
 import axios from "axios";
 import inputBox from "../components/inputBox";
+import loginBox from "../components/login";
 axios.defaults.withCredentials = true;
 
 export default {
@@ -195,6 +168,7 @@ export default {
       dialogVisible: false,
       disabled: false,
       file: null,
+      showInput: false,
       chinaList: [],
       worldList: [],
       types: [
@@ -363,11 +337,19 @@ export default {
     handleChange(value) {
       console.log({ value });
     },
+    show() {
+      this.showInput = true;
+    },
     async handleSelect(key, keyPath) {
       this.loading = true;
       if (keyPath.length > 1) {
         this.showIndex = keyPath[0];
       } else {
+        if (key == 3 || key == 4) {
+          this.loading = false;
+        }else if(this.chinaList.length > 0){
+          this.loading = false;
+        }
         this.showIndex = key;
       }
       if (keyPath[1] === "2-2") {
@@ -431,9 +413,11 @@ export default {
             if (provinceBar.varying.length > 0) {
               provinceBar.varying = provinceBar.varying.map(item => {
                 let cities = pro[0].children;
-                let city = cities.filter(city => city.name === item);
-                let label = city[0].label;
-                return label;
+                let city = cities.filter(city => {if(city.name === item){
+                  return city[0].label
+                }});
+                // let label = city[0].label;
+                return city;
               });
               this.drawWorldBar("prochart3", "省各市", provinceBar, [
                 "累计确诊",
@@ -513,31 +497,6 @@ export default {
     },
     async login() {
       await api.login();
-    },
-    async upload() {
-      let data = {
-        data: [
-          {
-            date: {
-              year: 2020,
-              month: 5,
-              day: 28
-            },
-            area: {
-              country: "china",
-              province: "guangdong",
-              city: "guangzhou"
-            },
-            detail: {
-              confirmed: 2000,
-              death: 70,
-              cured: 1930
-            }
-          }
-        ]
-      };
-      let res = await api.postData(data);
-      console.log({ res });
     },
     async download() {
       if (JSON.stringify(this.downloadData.area) != "{}") {
@@ -1012,7 +971,8 @@ export default {
     }
   },
   components: {
-    inputBox
+    inputBox,
+    loginBox
   }
 };
 </script>
@@ -1040,6 +1000,7 @@ export default {
   margin: 0 auto;
 }
 .download {
+  margin: 5% auto;
   width: fit-content;
 }
 </style>
