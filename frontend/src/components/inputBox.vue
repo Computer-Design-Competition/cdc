@@ -1,6 +1,6 @@
 <template>
   <div class="input-box">
-    <el-form :inline="true"  class="demo-form-inline">
+    <el-form :inline="true" class="demo-form-inline">
       <el-form-item label="记录日期">
         <el-date-picker v-model="date" align="right" type="date" placeholder="选择日期"></el-date-picker>
       </el-form-item>
@@ -72,9 +72,8 @@ export default {
   },
   methods: {
     async getProvinces() {
-      await axios.get("http://123.56.130.175:5000/world.json").then(res => {
-        this.chinaList = res.data.chinaList;
-      });
+      let worldData = await axios.get("/world.json");
+      this.chinaList = worldData.chinaList;
     },
     handleChange(value) {
       console.log(value);
