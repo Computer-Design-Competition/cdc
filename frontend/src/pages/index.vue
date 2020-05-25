@@ -1,5 +1,5 @@
 <template>
-  <div class="container">
+  <div class="container" v-loading="loading">
     <el-menu default-active="1" class="el-menu-demo" mode="horizontal" @select="handleSelect">
       <el-menu-item index="1">主页</el-menu-item>
       <el-submenu index="2">
@@ -79,7 +79,7 @@
           <div class="chart" id="prochart2"></div>
         </el-carousel-item>
         <el-carousel-item>
-          <div class="chart" id="prochart3" v-show="showPorchart3"></div>
+          <div class="chart" id="prochart3"></div>
         </el-carousel-item>
       </el-carousel>
       <el-carousel height="550px" v-show="cityChart">
@@ -182,18 +182,16 @@ import axios from "axios";
 import inputBox from "../components/inputBox";
 axios.defaults.withCredentials = true;
 
-const host = "http://123.56.130.175:5000/";
-
 export default {
   name: "index",
   data() {
     return {
+      loading: true,
       showIndex: 1,
       popper: false,
       provinceChart: false,
       cityChart: false,
       worldChart: false,
-      showPorchart3: true,
       dialogVisible: false,
       disabled: false,
       file: null,
@@ -315,43 +313,43 @@ export default {
         value: [data.confirmed, data.cured, data.death]
       };
     });
-    let namemap = {};
-    let chinamap = {};
-    await axios.get(host + "world.json").then(res => {
-      namemap = res.data.namemap;
-      chinamap = res.data.chinamap;
-      this.chinaList = res.data.chinaList;
-      this.worldList = res.data.worldList;
-      globalData = globalData.map(data => {
-        return {
-          name: namemap[data.name],
-          value: data.value
-        };
-      });
-      chinaData = chinaData.map(data => {
-        return {
-          name: chinamap[data.name],
-          value: data.value
-        };
-      });
-      chinaSomData = chinaSomData.map(data => {
-        return {
-          name: chinamap[data.name],
-          value: data.value
-        };
-      });
-      golbalSomData = golbalSomData.map(data => {
-        return {
-          name: namemap[data.name],
-          value: data.value
-        };
-      });
+    const worldData = await axios.get("/world.json");
+    this.loading = false;
+    console.log({ worldData });
+    const namemap = worldData.data.namemap;
+    const chinamap = worldData.data.chinamap;
+    this.chinaList = worldData.data.chinaList;
+    this.worldList = worldData.data.worldList;
+    globalData = globalData.map(data => {
+      return {
+        name: namemap[data.name],
+        value: data.value
+      };
     });
+    chinaData = chinaData.map(data => {
+      return {
+        name: chinamap[data.name],
+        value: data.value
+      };
+    });
+    chinaSomData = chinaSomData.map(data => {
+      return {
+        name: chinamap[data.name],
+        value: data.value
+      };
+    });
+    golbalSomData = golbalSomData.map(data => {
+      return {
+        name: namemap[data.name],
+        value: data.value
+      };
+    });
+    // });
 
     this.drawChart("chart1", namemap, globalData, "全球累计");
     this.drawChina("chart3", "中国累计", chinamap, chinaData);
     this.drawChina("chart10", "中国单日新增", chinamap, chinaSomData);
-    this.draw3d("chart2", golbalSomData);
+    this.drawChart("chart2", namemap, golbalSomData, "全球单日新增");
   },
   methods: {
     handleRemove(file) {
@@ -366,6 +364,7 @@ export default {
       console.log({ value });
     },
     async handleSelect(key, keyPath) {
+      this.loading = true;
       if (keyPath.length > 1) {
         this.showIndex = keyPath[0];
       } else {
@@ -397,6 +396,7 @@ export default {
           "累计治愈",
           "累计死亡"
         ]);
+        this.loading = false;
       }
       if (keyPath[1] === "2-1") {
         this.worldChart = false;
@@ -429,11 +429,11 @@ export default {
               province
             });
             if (provinceBar.varying.length > 0) {
-              this.showPorchart3 = true;
               provinceBar.varying = provinceBar.varying.map(item => {
                 let cities = pro[0].children;
                 let city = cities.filter(city => city.name === item);
-                return city[0].label;
+                let label = city[0].label;
+                return label;
               });
               this.drawWorldBar("prochart3", "省各市", provinceBar, [
                 "累计确诊",
@@ -451,6 +451,7 @@ export default {
               "单日新增治愈",
               "单日新增死亡"
             ]);
+            this.loading = false;
           } else {
             this.cityChart = true;
             this.provinceChart = false;
@@ -478,9 +479,9 @@ export default {
               "单日新增治愈",
               "单日新增死亡"
             ]);
+            this.loading = false;
           }
         } else {
-          this.showPorchart3 = false;
           this.provinceChart = true;
           this.cityChart = false;
           let somProLin = await api.getLine({
@@ -506,6 +507,7 @@ export default {
             "单日新增治愈",
             "单日新增死亡"
           ]);
+          this.loading = false;
         }
       }
     },
