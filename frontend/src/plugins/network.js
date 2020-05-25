@@ -14,22 +14,16 @@ export default {
  * @param {String} obj.responseType 设置响应的数据类型。合法值：text、arraybuffer
  */
 async function request(obj) {
-    let result = {};
 
-    await axios({
-            method: obj.method,
-            timeout: 40000,
-            url: obj.url + queryObjectToString(obj.queries),
-            data: obj.data,
-            crossDomain: true
-        })
-        .then(res => {
-            result = res.data;
-        }).catch(err => {
-            throw err
-        });
-
-    return result;
+    let result = await axios({
+        method: obj.method,
+        timeout: 40000,
+        url: obj.url + queryObjectToString(obj.queries),
+        data: obj.data,
+        crossDomain: true
+    });
+    let data = result.data;
+    return data;
 }
 
 /**

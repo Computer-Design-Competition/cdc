@@ -42,25 +42,19 @@ async function getBar(queries) {
     })
 }
 
-async function register() {
+async function register(data) {
     return Network.request({
         url: baseUrl + "register/",
         method: "post",
-        data: {
-            username: "test9",
-            password: "test"
-        }
+        data: data
     })
 }
 
-async function login() {
+async function login(data) {
     return Network.request({
         url: baseUrl + "login/",
         method: "post",
-        data: {
-            username: "test9",
-            password: "test"
-        }
+        data:data
     })
 }
 
