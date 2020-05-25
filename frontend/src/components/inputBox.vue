@@ -21,28 +21,7 @@
       <el-form-item>
         <el-input placeholder="请输入死亡人数" v-model="detail.death"></el-input>
       </el-form-item>
-    </el-form><el-form :inline="true"  class="demo-form-inline">
-      <el-form-item label="记录日期">
-        <el-date-picker v-model="date" align="right" type="date" placeholder="选择日期"></el-date-picker>
-      </el-form-item>
-      <el-form-item label="所在地区">
-        <el-cascader
-          v-model="province"
-          :options="chinaList"
-          :props="{ expandTrigger: 'hover' }"
-          @change="handleChange"
-        ></el-cascader>
-      </el-form-item>
-      <el-form-item>
-        <el-input placeholder="请输入确诊人数" v-model="detail.cofirmed"></el-input>
-      </el-form-item>
-      <el-form-item>
-        <el-input placeholder="请输入治愈人数" v-model="detail.cured"></el-input>
-      </el-form-item>
-      <el-form-item>
-        <el-input placeholder="请输入死亡人数" v-model="detail.death"></el-input>
-      </el-form-item>
-    </el-form>
+    </el-form>>
   </div>
 </template>
 
@@ -93,7 +72,7 @@ export default {
   },
   methods: {
     async getProvinces() {
-      await axios.get("http://192.168.43.14:8080/world.json").then(res => {
+      await axios.get("http://123.56.130.175:5000/world.json").then(res => {
         this.chinaList = res.data.chinaList;
       });
     },

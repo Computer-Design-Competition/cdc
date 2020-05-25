@@ -11,7 +11,6 @@
               <el-submenu :index="item.value" v-if="item.children">
                 <template slot="title">{{item.label}}</template>
                 <div class="sub-menu">
-                  <el-menu-item :index="item.value+'-0'">不选择市</el-menu-item>
                   <el-menu-item
                     v-for="city in item.children"
                     :key="city.value"
@@ -45,7 +44,10 @@
         <div class="chart" id="chart2"></div>
       </el-carousel-item>
       <el-carousel-item>
-        <div class="chart" id="chart3" ref="chart3"></div>
+        <div class="chart" id="chart3"></div>
+      </el-carousel-item>
+      <el-carousel-item>
+        <div class="chart" id="chart10"></div>
       </el-carousel-item>
       <el-carousel-item>
         <div class="chart" id="chart6"></div>
@@ -77,7 +79,7 @@
           <div class="chart" id="prochart2"></div>
         </el-carousel-item>
         <el-carousel-item>
-          <div class="chart" id="prochart3"></div>
+          <div class="chart" id="prochart3" v-show="showPorchart3"></div>
         </el-carousel-item>
       </el-carousel>
       <el-carousel height="550px" v-show="cityChart">
@@ -118,23 +120,69 @@
         </div>
       </el-upload>
       <el-dialog :visible.sync="dialogVisible">
-        <img width="100%" :src="dialogImageUrl" alt />
+        <img width="100%" alt />
       </el-dialog>
     </div>
-    <div class="box" v-show="showIndex==4">
+    <div class="box download" v-show="showIndex==4">
+      <el-form>
+        <el-form-item label="截止时间">
+          <el-date-picker
+            v-model="downloadData.date"
+            align="right"
+            type="date"
+            placeholder="选择日期"
+            :picker-options="pickerOptions"
+            value-format="yyyy-MM-dd"
+          ></el-date-picker>
+        </el-form-item>
+        <el-form-item label="国外地区">
+          <el-cascader
+            v-model="downloadData.area"
+            :options="worldList"
+            :props="{ expandTrigger: 'hover' }"
+            @change="handleChange"
+          ></el-cascader>
+        </el-form-item>
+        <el-form-item label="国内地区">
+          <el-cascader
+            :options="chinaList"
+            v-model="downloadData.area"
+            :props="{expandTrigger:'hover'}"
+            @change="handleChange"
+          ></el-cascader>
+        </el-form-item>
+        <el-form-item label="类型">
+          <el-select v-model="downloadData.data_type" multiple placeholder="请选择">
+            <el-option
+              v-for="item in types"
+              :key="item.value"
+              :label="item.label"
+              :value="item.value"
+            ></el-option>
+          </el-select>
+        </el-form-item>
+        <el-form-item>
+          <el-select v-model="downloadData.level" placeholder="请选择范围">
+            <el-option
+              v-for="item in levels"
+              :key="item.value"
+              :label="item.label"
+              :value="item.value"
+            ></el-option>
+          </el-select>
+        </el-form-item>
+      </el-form>
       <el-button @click="download">下载</el-button>
     </div>
-    <!-- <el-button @click="login">登录</el-button> -->
-
-    <!-- <a id="test" @click="clickDownload(this)" download="file.csv" href=>download</a> -->
   </div>
 </template>
 <script>
 import api from "../api/api";
 import axios from "axios";
 import inputBox from "../components/inputBox";
-// import echart from "../plugins/echart";
 axios.defaults.withCredentials = true;
+
+const host = "http://123.56.130.175:5000/";
 
 export default {
   name: "index",
@@ -145,12 +193,59 @@ export default {
       provinceChart: false,
       cityChart: false,
       worldChart: false,
-      dialogImageUrl: "",
+      showPorchart3: true,
       dialogVisible: false,
       disabled: false,
       file: null,
       chinaList: [],
-      worldList: []
+      worldList: [],
+      types: [
+        { label: "确诊", value: "confirmed" },
+        { label: "治愈", value: "cured" },
+        { label: "死亡", value: "death" }
+      ],
+      levels: [
+        {
+          label: "全省/市",
+          value: true
+        },
+        {
+          label: "各省/市",
+          value: false
+        }
+      ],
+      downloadData: {
+        area: {}
+      },
+      pickerOptions: {
+        disabledDate(time) {
+          return time.getTime() > Date.now();
+        },
+        shortcuts: [
+          {
+            text: "今天",
+            onClick(picker) {
+              picker.$emit("pick", new Date());
+            }
+          },
+          {
+            text: "昨天",
+            onClick(picker) {
+              const date = new Date();
+              date.setTime(date.getTime() - 3600 * 1000 * 24);
+              picker.$emit("pick", date);
+            }
+          },
+          {
+            text: "一周前",
+            onClick(picker) {
+              const date = new Date();
+              date.setTime(date.getTime() - 3600 * 1000 * 24 * 7);
+              picker.$emit("pick", date);
+            }
+          }
+        ]
+      }
     };
   },
   async mounted() {
@@ -159,6 +254,12 @@ export default {
     let chinaData = await api.getdata({
       date,
       type: "accumulated",
+      country: "china"
+    });
+    let golbalSomData = await api.getdata({ date, type: "someday" });
+    let chinaSomData = await api.getdata({
+      date,
+      type: "someday",
       country: "china"
     });
     let chinaLine = await api.getLine({
@@ -202,10 +303,21 @@ export default {
         value: [data.confirmed, data.cured, data.death]
       };
     });
-
+    golbalSomData = golbalSomData.detail.map(data => {
+      return {
+        name: data.name,
+        value: [data.confirmed, data.cured, data.death]
+      };
+    });
+    chinaSomData = chinaSomData.detail.map(data => {
+      return {
+        name: data.name,
+        value: [data.confirmed, data.cured, data.death]
+      };
+    });
     let namemap = {};
     let chinamap = {};
-    await axios.get("http://192.168.43.14:8080/world.json").then(res => {
+    await axios.get(host + "world.json").then(res => {
       namemap = res.data.namemap;
       chinamap = res.data.chinamap;
       this.chinaList = res.data.chinaList;
@@ -222,18 +334,26 @@ export default {
           value: data.value
         };
       });
+      chinaSomData = chinaSomData.map(data => {
+        return {
+          name: chinamap[data.name],
+          value: data.value
+        };
+      });
+      golbalSomData = golbalSomData.map(data => {
+        return {
+          name: namemap[data.name],
+          value: data.value
+        };
+      });
     });
 
     this.drawChart("chart1", namemap, globalData, "全球累计");
     this.drawChina("chart3", "中国累计", chinamap, chinaData);
+    this.drawChina("chart10", "中国单日新增", chinamap, chinaSomData);
+    this.draw3d("chart2", golbalSomData);
   },
   methods: {
-    clickDownload(aLink) {
-      let str = this.file;
-      str = encodeURIComponent(str);
-      aLink.href = "data:text/csv;charset=utf-8,\ufeff" + str;
-      aLink.click();
-    },
     handleRemove(file) {
       console.log(file);
     },
@@ -241,6 +361,9 @@ export default {
       console.log(file);
       let res = api.postFile(file.raw);
       this.file = res;
+    },
+    handleChange(value) {
+      console.log({ value });
     },
     async handleSelect(key, keyPath) {
       if (keyPath.length > 1) {
@@ -250,6 +373,8 @@ export default {
       }
       if (keyPath[1] === "2-2") {
         this.worldChart = true;
+        this.provinceChart = false;
+        this.cityChart = false;
         let country = this.worldList.filter(item => item.value === keyPath[2]);
         country = country[0].name;
         let somData = await api.getLine({
@@ -274,42 +399,88 @@ export default {
         ]);
       }
       if (keyPath[1] === "2-1") {
-        let province = this.chinaList.filter(item => item.value === keyPath[2]);
+        this.worldChart = false;
+        let pro = this.chinaList.filter(item => item.value === keyPath[2]);
         let city = [];
         if (keyPath.length === 4) {
-          city = province[0]["children"].filter(
-            city => city.value === keyPath[3]
-          );
+          city = pro[0]["children"].filter(city => city.value === keyPath[3]);
         }
-        province = province[0].label;
+        let province = pro[0].label;
         if (city.length !== 0) {
-          this.cityChart = true;
-          this.provinceChart = false;
-          let somCityLin = await api.getLine({
-            date: this.getDay(-1, "-"),
-            type: "someday",
-            country: "china",
-            province,
-            city: city[0].label.substring(0, city[0].label.length - 1)
-          });
-          let allCityLin = await api.getLine({
-            date: this.getDay(-1, "-"),
-            type: "accumulated",
-            country: "china",
-            province,
-            city: city[0].label.substring(0, city[0].label.length - 1)
-          });
-          this.drawWorldLine("citychart1", "市累计", allCityLin, [
-            "累计确诊",
-            "累计治愈",
-            "累计死亡"
-          ]);
-          this.drawWorldLine("citychart2", "市单日", somCityLin, [
-            "单日新增确诊",
-            "单日新增治愈",
-            "单日新增死亡"
-          ]);
+          if (city[0].label === "不包括市") {
+            this.provinceChart = true;
+            this.cityChart = false;
+            let somProLin = await api.getLine({
+              date: this.getDay(-1, "-"),
+              type: "someday",
+              country: "china",
+              province
+            });
+            let allProLin = await api.getLine({
+              date: this.getDay(-1, "-"),
+              type: "accumulated",
+              country: "china",
+              province
+            });
+            let provinceBar = await api.getBar({
+              date: this.getDay(-1, "-"),
+              type: "accumulated",
+              country: "china",
+              province
+            });
+            if (provinceBar.varying.length > 0) {
+              this.showPorchart3 = true;
+              provinceBar.varying = provinceBar.varying.map(item => {
+                let cities = pro[0].children;
+                let city = cities.filter(city => city.name === item);
+                return city[0].label;
+              });
+              this.drawWorldBar("prochart3", "省各市", provinceBar, [
+                "累计确诊",
+                "累计治愈",
+                "累计死亡"
+              ]);
+            }
+            this.drawWorldLine("prochart1", "省累计", allProLin, [
+              "累计确诊",
+              "累计治愈",
+              "累计死亡"
+            ]);
+            this.drawWorldLine("prochart2", "省单日", somProLin, [
+              "单日新增确诊",
+              "单日新增治愈",
+              "单日新增死亡"
+            ]);
+          } else {
+            this.cityChart = true;
+            this.provinceChart = false;
+            let somCityLin = await api.getLine({
+              date: this.getDay(-1, "-"),
+              type: "someday",
+              country: "china",
+              province,
+              city: city[0].label.substring(0, city[0].label.length - 1)
+            });
+            let allCityLin = await api.getLine({
+              date: this.getDay(-1, "-"),
+              type: "accumulated",
+              country: "china",
+              province,
+              city: city[0].label.substring(0, city[0].label.length - 1)
+            });
+            this.drawWorldLine("citychart1", "市累计", allCityLin, [
+              "累计确诊",
+              "累计治愈",
+              "累计死亡"
+            ]);
+            this.drawWorldLine("citychart2", "市单日", somCityLin, [
+              "单日新增确诊",
+              "单日新增治愈",
+              "单日新增死亡"
+            ]);
+          }
         } else {
+          this.showPorchart3 = false;
           this.provinceChart = true;
           this.cityChart = false;
           let somProLin = await api.getLine({
@@ -324,6 +495,7 @@ export default {
             country: "china",
             province
           });
+
           this.drawWorldLine("prochart1", "省累计", allProLin, [
             "累计确诊",
             "累计治愈",
@@ -366,24 +538,54 @@ export default {
       console.log({ res });
     },
     async download() {
-      let date = this.getDay(-1, "-");
-      let data = {
-        date,
-        area: {},
-        data_type: ["confirmed"],
-        level: true
-      };
-      let res = await api.download(data);
-      this.file = res;
-      const link = document.createElement("a");
-      link.href = encodeURI(res);
-      link.download = "fileName.csv";
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+      if (JSON.stringify(this.downloadData.area) != "{}") {
+        if (this.downloadData.area[0].substring(0, 3) === "2-1") {
+          let province = this.chinaList.filter(
+            item => item.value === this.downloadData.area[0]
+          );
+          if (this.downloadData.area.length === 2) {
+            if (
+              this.downloadData.area[1].substring(
+                this.downloadData.area[1].length - 1,
+                this.downloadData.area[1].length
+              ) != 0
+            ) {
+              let cities = province[0].children;
+              let city = cities.filter(
+                city => city.value === this.downloadData.area[1]
+              );
+              this.downloadData.area = {
+                country: "China",
+                province: province[0].label,
+                city: city[0].label
+              };
+            } else {
+              this.downloadData.area = {
+                country: "China",
+                province: province[0].label
+              };
+            }
+          } else {
+            this.downloadData.area = { province: province[0].label };
+          }
+        } else {
+          let country = this.worldList.filter(
+            item => item.value === this.downloadData.area[0]
+          );
+          this.downloadData.area = { country: country[0].name };
+          this.downloadData.level = true;
+        }
+      }
+      if (
+        this.downloadData.date &&
+        this.downloadData.area &&
+        this.downloadData.data_type
+      ) {
+        await api.download(this.downloadData);
+      }
     },
     drawChina(id, seriesName, name, data) {
-      let chart = this.$echarts.init(this.$refs.chart3);
+      let chart = this.$echarts.init(document.getElementById(id));
       chart.setOption({
         title: {
           text: seriesName, // 主标题文本，支持使用 \n 换行
@@ -709,6 +911,102 @@ export default {
       let oDay = today.getDate().toString();
       if (oDay.length <= 1) oDay = "0" + oDay;
       return oYear + str + oMoth + str + oDay;
+    },
+    draw3d(id, data) {
+      let chart = this.$echarts.init(document.getElementById(id));
+      chart.setOption({
+        backgroundColor: "#cdcfd5",
+        geo3D: {
+          map: "world",
+          shading: "lambert",
+          light: {
+            main: {
+              intensity: 5,
+              shadow: true,
+              shadowQuality: "high",
+              alpha: 30
+            },
+            ambient: {
+              intensity: 0
+            },
+            ambientCubemap: {
+              texture: "data-gl/asset/canyon.hdr",
+              exposure: 1,
+              diffuseIntensity: 0.5
+            }
+          },
+          viewControl: {
+            distance: 50,
+            panMouseButton: "left",
+            rotateMouseButton: "right"
+          },
+          groundPlane: {
+            show: true,
+            color: "#999"
+          },
+          postEffect: {
+            enable: true,
+            bloom: {
+              enable: false
+            },
+            SSAO: {
+              radius: 1,
+              intensity: 1,
+              enable: true
+            },
+            depthOfField: {
+              enable: false,
+              focalRange: 10,
+              blurRadius: 10,
+              fstop: 1
+            }
+          },
+          temporalSuperSampling: {
+            enable: true
+          },
+          itemStyle: {},
+
+          regionHeight: 2
+        },
+        visualMap: {
+          max: 40,
+          calculable: true,
+          realtime: false,
+          inRange: {
+            color: [
+              "#313695",
+              "#4575b4",
+              "#74add1",
+              "#abd9e9",
+              "#e0f3f8",
+              "#ffffbf",
+              "#fee090",
+              "#fdae61",
+              "#f46d43",
+              "#d73027",
+              "#a50026"
+            ]
+          },
+          outOfRange: {
+            colorAlpha: 0
+          }
+        },
+        series: [
+          {
+            type: "bar3D",
+            coordinateSystem: "geo3D",
+            shading: "lambert",
+            data: data,
+            barSize: 0.1,
+            minHeight: 0.2,
+            silent: true,
+            itemStyle: {
+              color: "orange",
+              opacity: 0.8
+            }
+          }
+        ]
+      });
     }
   },
   components: {
@@ -734,5 +1032,12 @@ export default {
 .sub-menu {
   height: 500px;
   overflow: scroll;
+}
+.box {
+  width: 100%;
+  margin: 0 auto;
+}
+.download {
+  width: fit-content;
 }
 </style>
