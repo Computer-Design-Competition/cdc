@@ -92,21 +92,13 @@ async function download(data) {
         );
         const link = document.createElement('a');
         link.href = url;
-        link.setAttribute('download', 'test.csv'); // 需要指定文件格式。
+        link.setAttribute('download', 'download.csv'); // 需要指定文件格式。
         document.body.appendChild(link);
         link.click(); //点击事件
     });
 }
 
 function postFile(data) {
-    // return Network.request({
-    //     url:baseUrl +"upload_data/",
-    //     method:"post",
-    //     data:
-    // })
-    console.log({
-        formData
-    });
     const formData = new FormData();
     formData.append("file", data);
     let request = new XMLHttpRequest();
