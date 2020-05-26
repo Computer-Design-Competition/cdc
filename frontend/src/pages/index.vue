@@ -518,7 +518,7 @@ export default {
               this.downloadData.area = {
                 country: "China",
                 province: province[0].label,
-                city: city[0].label
+                city: city[0].label.substring(0,city[0].label.length-1)
               };
             } else {
               this.downloadData.area = {
