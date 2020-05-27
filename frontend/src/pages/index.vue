@@ -120,7 +120,6 @@
             v-model="downloadData.area"
             :options="newworldList"
             :props="{ expandTrigger: 'hover' }"
-            @change="handleChange"
           ></el-cascader>
         </el-form-item>
         <el-form-item label="国内地区">
@@ -128,7 +127,6 @@
             :options="newchinaList"
             v-model="downloadData.area"
             :props="{expandTrigger:'hover'}"
-            @change="handleChange"
           ></el-cascader>
         </el-form-item>
         <el-form-item label="类型">
@@ -304,8 +302,8 @@ export default {
     const chinamap = worldData.data.chinamap;
     this.chinaList = worldData.data.chinaList;
     this.worldList = worldData.data.worldList;
-    this.newchinaList = worldData.data.chinaList;
-    this.newworldList = worldData.data.worldList;
+    this.newchinaList = [...worldData.data.chinaList];
+    this.newworldList = [...worldData.data.worldList];
     this.newchinaList.splice(0, 0, {
       label: "不选择省/市",
       value: "2-1-0"
@@ -314,7 +312,6 @@ export default {
       label: "全世界",
       value: "2-2-x"
     });
-    console.log(this.newchinaList, this.newworldList);
     globalData = globalData.map(data => {
       return {
         name: namemap[data.name],
@@ -347,17 +344,6 @@ export default {
     this.drawChart("chart2", namemap, golbalSomData, "全球单日新增");
   },
   methods: {
-    handleRemove(file) {
-      console.log(file);
-    },
-    handleDownload(file) {
-      console.log(file);
-      let res = api.postFile(file.raw);
-      this.file = res;
-    },
-    handleChange(value) {
-      console.log({ value });
-    },
     show() {
       this.showInput = true;
     },
