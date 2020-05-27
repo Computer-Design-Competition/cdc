@@ -309,6 +309,11 @@
                          "value": "2-1-5-11",
                          "label": "兴安盟市",
                          "name": "xinganmeng"
+                    },
+                    {
+                         "value": "2-1-5-12",
+                         "label": "境外输入",
+                         "name": "jingwaishuru"
                     }
                ]
           },
@@ -375,6 +380,11 @@
                          "value": "2-1-6-11",
                          "label": "运城市",
                          "name": "yuncheng"
+                    },
+                    {
+                         "value": "2-1-6-12",
+                         "label": "境外输入",
+                         "name": "jingwaishuru"
                     }
                ]
           },
@@ -441,6 +451,11 @@
                          "value": "2-1-7-11",
                          "label": "衡水市",
                          "name": "hengshui"
+                    },
+                    {
+                         "value": "2-1-7-12",
+                         "label": "境外输入",
+                         "name": "jingwaishuru"
                     }
                ]
           },
@@ -588,6 +603,11 @@
                          "value": "2-1-9-10",
                          "label": "白城市",
                          "name": "baicheng"
+                    },
+                    {
+                         "value": "2-1-9-11",
+                         "label": "境外输入",
+                         "name": "jingwaishuru"
                     }
                ]
           },
@@ -841,6 +861,11 @@
                          "value": "2-1-12-16",
                          "label": "宣城市",
                          "name": "xuancheng"
+                    },
+                    {
+                         "value": "2-1-12-17",
+                         "label": "境外输入",
+                         "name": "jingwaishuru"
                     }
                ]
           },
@@ -1327,6 +1352,11 @@
                          "value": "2-1-18-17",
                          "label": "神农架林区市",
                          "name": "shennongjialinqu"
+                    },
+                    {
+                         "value": "2-1-18-18",
+                         "label": "境外输入",
+                         "name": "jingwaishuru"
                     }
                ]
           },
@@ -1544,6 +1574,11 @@
                          "value": "2-1-20-20",
                          "label": "河源市",
                          "name": "heyuan"
+                    },
+                    {
+                         "value": "2-1-20-21",
+                         "label": "境外输入",
+                         "name": "jingwaishuru"
                     }
                ]
           },
@@ -1630,6 +1665,11 @@
                          "value": "2-1-21-15",
                          "label": "三亚市",
                          "name": "sanya"
+                    },
+                    {
+                         "value": "2-1-21-16",
+                         "label": "境外输入",
+                         "name": "jingwaishuru"
                     }
                ]
           },
@@ -1888,6 +1928,11 @@
                          "value": "2-1-24-21",
                          "label": "阿坝州市",
                          "name": "abazhou"
+                    },
+                    {
+                         "value": "2-1-24-22",
+                         "label": "境外输入",
+                         "name": "jingwaishuru"
                     }
                ]
           },
@@ -2045,6 +2090,11 @@
                          "value": "2-1-26-12",
                          "label": "杨凌市",
                          "name": "yangling"
+                    },
+                    {
+                         "value": "2-1-26-13",
+                         "label": "境外输入",
+                         "name": "jingwaishuru"
                     }
                ]
           },
