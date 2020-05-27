@@ -90,6 +90,14 @@
           <div class="chart" id="citychart2"></div>
         </el-carousel-item>
       </el-carousel>
+      <el-carousel height="550px" v-show="cityChart2">
+        <el-carousel-item>
+          <div class="chart" id="citychart3"></div>
+        </el-carousel-item>
+        <el-carousel-item>
+          <div class="chart" id="citychart4"></div>
+        </el-carousel-item>
+      </el-carousel>
     </div>
     <div class="box" v-show="showIndex == 3">
       <inputBox v-if="showInput"></inputBox>
@@ -110,14 +118,14 @@
         <el-form-item label="国外地区">
           <el-cascader
             v-model="downloadData.area"
-            :options="worldList"
+            :options="newworldList"
             :props="{ expandTrigger: 'hover' }"
             @change="handleChange"
           ></el-cascader>
         </el-form-item>
         <el-form-item label="国内地区">
           <el-cascader
-            :options="chinaList"
+            :options="newchinaList"
             v-model="downloadData.area"
             :props="{expandTrigger:'hover'}"
             @change="handleChange"
@@ -164,6 +172,7 @@ export default {
       popper: false,
       provinceChart: false,
       cityChart: false,
+      cityChart2: false,
       worldChart: false,
       dialogVisible: false,
       disabled: false,
@@ -171,6 +180,8 @@ export default {
       showInput: false,
       chinaList: [],
       worldList: [],
+      newchinaList: [],
+      newworldList: [],
       types: [
         { label: "确诊", value: "confirmed" },
         { label: "治愈", value: "cured" },
@@ -289,11 +300,21 @@ export default {
     });
     const worldData = await axios.get("/world.json");
     this.loading = false;
-    console.log({ worldData });
     const namemap = worldData.data.namemap;
     const chinamap = worldData.data.chinamap;
     this.chinaList = worldData.data.chinaList;
     this.worldList = worldData.data.worldList;
+    this.newchinaList = worldData.data.chinaList;
+    this.newworldList = worldData.data.worldList;
+    this.newchinaList.splice(0, 0, {
+      label: "不选择省/市",
+      value: "2-1-0"
+    });
+    this.newworldList.splice(0, 0, {
+      label: "全世界",
+      value: "2-2-x"
+    });
+    console.log(this.newchinaList, this.newworldList);
     globalData = globalData.map(data => {
       return {
         name: namemap[data.name],
@@ -347,7 +368,7 @@ export default {
       } else {
         if (key == 3 || key == 4) {
           this.loading = false;
-        }else if(this.chinaList.length > 0){
+        } else if (this.chinaList.length > 0) {
           this.loading = false;
         }
         this.showIndex = key;
@@ -392,6 +413,7 @@ export default {
           if (city[0].label === "不包括市") {
             this.provinceChart = true;
             this.cityChart = false;
+            this.cityChart2 = false;
             let somProLin = await api.getLine({
               date: this.getDay(-1, "-"),
               type: "someday",
@@ -413,11 +435,9 @@ export default {
             if (provinceBar.varying.length > 0) {
               provinceBar.varying = provinceBar.varying.map(item => {
                 let cities = pro[0].children;
-                let city = cities.filter(city => {if(city.name === item){
-                  return city[0].label
-                }});
-                // let label = city[0].label;
-                return city;
+                let city = cities.filter(city => city.name === item);
+                let res = city[0].label;
+                return res;
               });
               this.drawWorldBar("prochart3", "省各市", provinceBar, [
                 "累计确诊",
@@ -439,6 +459,7 @@ export default {
           } else {
             this.cityChart = true;
             this.provinceChart = false;
+            this.cityChart2 = false;
             let somCityLin = await api.getLine({
               date: this.getDay(-1, "-"),
               type: "someday",
@@ -466,7 +487,8 @@ export default {
             this.loading = false;
           }
         } else {
-          this.provinceChart = true;
+          this.cityChart2 = true;
+          this.provinceChart = false;
           this.cityChart = false;
           let somProLin = await api.getLine({
             date: this.getDay(-1, "-"),
@@ -480,13 +502,12 @@ export default {
             country: "china",
             province
           });
-
-          this.drawWorldLine("prochart1", "省累计", allProLin, [
+          this.drawWorldLine("citychart3", "市累计", allProLin, [
             "累计确诊",
             "累计治愈",
             "累计死亡"
           ]);
-          this.drawWorldLine("prochart2", "省单日", somProLin, [
+          this.drawWorldLine("citychart4", "市单日", somProLin, [
             "单日新增确诊",
             "单日新增治愈",
             "单日新增死亡"
@@ -518,7 +539,7 @@ export default {
               this.downloadData.area = {
                 country: "China",
                 province: province[0].label,
-                city: city[0].label.substring(0,city[0].label.length-1)
+                city: city[0].label.substring(0, city[0].label.length - 1)
               };
             } else {
               this.downloadData.area = {
@@ -526,15 +547,26 @@ export default {
                 province: province[0].label
               };
             }
+          } else if (this.downloadData.area[0] === "2-1-0") {
+            this.downloadData.area = {
+              country: "China"
+            };
           } else {
-            this.downloadData.area = { province: province[0].label };
+            this.downloadData.area = {
+              country: "China",
+              province: province[0].label
+            };
           }
         } else {
-          let country = this.worldList.filter(
-            item => item.value === this.downloadData.area[0]
-          );
-          this.downloadData.area = { country: country[0].name };
-          this.downloadData.level = true;
+          if (this.downloadData.area[0] === "2-2-x") {
+            this.downloadData.area = {};
+          } else {
+            let country = this.worldList.filter(
+              item => item.value === this.downloadData.area[0]
+            );
+            this.downloadData.area = { country: country[0].name };
+            this.downloadData.level = true;
+          }
         }
       }
       if (
